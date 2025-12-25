@@ -28,7 +28,8 @@ A simple e-commerce web application built with Node.js, Express, MongoDB (Mongoo
 
    ```bash
    git clone <repo-url>
-   cd Lecture_10_Project
+   cd Smart-Ecom-Shop
+
    ```
 
 2. Install dependencies:
