@@ -1,0 +1,433 @@
+
+<% layout('layouts/boilerplate') %>
+<%- include('../partials/navbar') %>
+<%- include('../partials/flash') %>
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="display-5 fw-bold">
+                    <i class="fas fa-shopping-cart me-3" style="color: var(--primary-color);"></i>
+                    Shopping Cart
+                </h1>
+                <span class="badge bg-primary fs-6 px-3 py-2">
+                    <%= user.cart.length %> <%= user.cart.length === 1 ? 'Item' : 'Items' %>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <% if(user.cart.length === 0) { %>
+        <!-- Empty Cart State -->
+        <div class="row">
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <div class="empty-cart-icon mb-4">
+                        <i class="fas fa-shopping-cart" style="font-size: 5rem; color: var(--text-secondary); opacity: 0.3;"></i>
+                    </div>
+                    <h3 class="text-muted mb-3">Your cart is empty</h3>
+                    <p class="text-muted mb-4">Looks like you haven't added any items to your cart yet.</p>
+                    <a href="/products" class="btn btn-primary btn-lg">
+                        <i class="fas fa-shopping-bag me-2"></i>Start Shopping
+                    </a>
+                </div>
+            </div>
+        </div>
+    <% } else { %>
+        <!-- Cart Items -->
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card shadow border-0" style="border-radius: 20px;">
+                    <div class="card-body p-4">
+                        <% let totalPrice = 0; %>
+                        <% for(let i = 0; i < user.cart.length; i++) { %>
+                            <% let item = user.cart[i]; %>
+                            <% totalPrice += parseFloat(item.price) || 0; %>
+                            
+                            <div class="cart-item row align-items-center py-3 <%= i < user.cart.length - 1 ? 'border-bottom' : '' %>">
+                                <div class="col-md-2 col-sm-3 mb-3 mb-md-0">
+                                    <div class="product-image">
+                                        <img src="<%= item.img %>" alt="<%= item.name %>" 
+                                             class="img-fluid rounded" 
+                                             style="height: 80px; width: 80px; object-fit: cover;">
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4 col-sm-6 mb-3 mb-md-0">
+                                    <h5 class="product-name mb-2"><%= item.name %></h5>
+                                    <p class="text-muted mb-0 small"><%= item.desc.substring(0, 60) %>...</p>
+                                </div>
+                                
+                                <div class="col-md-2 col-sm-6 mb-3 mb-md-0">
+                                    <div class="quantity-controls d-flex align-items-center">
+                                        <button class="btn btn-outline-secondary btn-sm quantity-btn" 
+                                                onclick="updateQuantity('<%= item._id %>', -1)">
+                                            <i class="fas fa-minus"></i>
+                                        </button>
+                                        <span class="mx-3 fw-bold quantity-display">1</span>
+                                        <button class="btn btn-outline-secondary btn-sm quantity-btn" 
+                                                onclick="updateQuantity('<%= item._id %>', 1)">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-2 col-sm-6 mb-3 mb-md-0">
+                                    <div class="price text-center">
+                                        <span class="h5 fw-bold text-success">$<%= item.price %></span>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-2 col-sm-6">
+                                    <form action="/user/cart/<%= item._id %>/remove" method="POST" class="d-inline">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Order Summary -->
+            <div class="col-lg-4">
+                <div class="card shadow border-0 sticky-top" style="border-radius: 20px; top: 100px;">
+                    <div class="card-body p-4">
+                        <h4 class="card-title mb-4">Order Summary</h4>
+                        
+                        <div class="summary-row d-flex justify-content-between mb-3">
+                            <span>Subtotal (<%= user.cart.length %> items):</span>
+                            <span class="fw-bold">$<%= totalPrice.toFixed(2) %></span>
+                        </div>
+                        
+                        <div class="summary-row d-flex justify-content-between mb-3">
+                            <span>Shipping:</span>
+                            <span class="text-success fw-bold">Free</span>
+                        </div>
+                        
+                        <div class="summary-row d-flex justify-content-between mb-3">
+                            <span>Tax:</span>
+                            <span>$<%= (totalPrice * 0.1).toFixed(2) %></span>
+                        </div>
+                        
+                        <hr class="my-3">
+                        
+                        <div class="summary-row d-flex justify-content-between mb-4">
+                            <span class="h5 fw-bold">Total:</span>
+                            <span class="h5 fw-bold text-primary">$<%= (totalPrice * 1.1).toFixed(2) %></span>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-primary btn-lg" onclick="proceedToCheckout()">
+                                <i class="fas fa-credit-card me-2"></i>Proceed to Checkout
+                            </button>
+                            <a href="/products" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Continue Shopping
+                            </a>
+                        </div>
+                        
+                        <!-- Promo Code Section -->
+                        <div class="mt-4">
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Promo code" id="promoCode">
+                                <button class="btn btn-outline-primary" type="button" onclick="applyPromoCode()">
+                                    Apply
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <% } %>
+</div>
+
+<!-- Payment Modal -->
+<div class="modal fade" id="checkoutModal" tabindex="-1" aria-labelledby="checkoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="border-radius: 20px;">
+            <div class="modal-header border-0">
+                <h5 class="modal-title" id="checkoutModalLabel">
+                    <i class="fas fa-credit-card me-2"></i>Checkout
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div id="payment-element">
+                    <!-- Stripe payment form will be inserted here -->
+                </div>
+                <div class="text-center mt-4">
+                    <button id="submit-payment" class="btn btn-primary btn-lg">
+                        <i class="fas fa-lock me-2"></i>Pay Securely
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Quantity update function
+    function updateQuantity(productId, change) {
+        // In a real application, this would make an AJAX call to update the quantity
+        console.log(`Update quantity for ${productId} by ${change}`);
+        // For now, just update the display
+        // This would be implemented with proper backend calls
+    }
+
+    // Promo code function
+    function applyPromoCode() {
+        const promoCode = document.getElementById('promoCode').value;
+        if (promoCode.trim()) {
+            // In a real application, validate the promo code with backend
+            alert(`Promo code "${promoCode}" applied! (This is a demo)`);
+        }
+    }
+
+    // Checkout function
+    function proceedToCheckout() {
+        // Check if there are items in cart by counting cart items on the page
+        const cartItems = document.querySelectorAll('.cart-item');
+        if(cartItems.length > 0) {
+            // Show the checkout modal
+            const checkoutModal = new bootstrap.Modal(document.getElementById('checkoutModal'));
+            checkoutModal.show();
+            
+            // Initialize payment processing
+            initializePayment();
+        } else {
+            alert('Your cart is empty. Please add items before checkout.');
+        }
+    }
+
+    // Payment initialization
+    function initializePayment() {
+        // Calculate total from the displayed prices
+        let totalAmount = 0;
+        const prices = document.querySelectorAll('.price .h5');
+        prices.forEach(priceEl => {
+            const priceText = priceEl.textContent.replace('$', '');
+            totalAmount += parseFloat(priceText) || 0;
+        });
+        // Add tax (10%)
+        totalAmount = totalAmount * 1.1;
+        
+        document.getElementById('payment-element').innerHTML = `
+            <div class="text-center mb-4">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p>Initializing secure payment...</p>
+            </div>
+        `;
+        
+        // Create payment intent
+        fetch('/create-payment-intent', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.clientSecret) {
+                showPaymentForm(data);
+            } else {
+                throw new Error('Failed to initialize payment');
+            }
+        })
+        .catch(error => {
+            console.error('Payment initialization error:', error);
+            document.getElementById('payment-element').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Failed to initialize payment. Please try again.
+                </div>
+            `;
+        });
+    }
+
+    // Show payment form
+    function showPaymentForm(paymentData) {
+        document.getElementById('payment-element').innerHTML = `
+            <div class="payment-form">
+                <div class="alert alert-info mb-4">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Demo Mode:</strong> This is a demonstration of payment integration. 
+                    In production, this would securely process real payments.
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h6 class="card-title">Order Summary</h6>
+                        <div class="d-flex justify-content-between">
+                            <span>Total Amount:</span>
+                            <span class="fw-bold">$${paymentData.amount.toFixed(2)}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Card Number</label>
+                    <input type="text" class="form-control" placeholder="1234 5678 9012 3456" maxlength="19" id="cardNumber">
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <label class="form-label">Expiry Date</label>
+                        <input type="text" class="form-control" placeholder="MM/YY" maxlength="5" id="expiryDate">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">CVC</label>
+                        <input type="text" class="form-control" placeholder="123" maxlength="3" id="cvc">
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Cardholder Name</label>
+                    <input type="text" class="form-control" placeholder="John Doe" id="cardholderName">
+                </div>
+                
+                <div class="text-center">
+                    <button id="submit-payment" class="btn btn-success btn-lg w-100" onclick="processPayment('${paymentData.paymentIntentId}')">
+                        <i class="fas fa-lock me-2"></i>Pay $${paymentData.amount.toFixed(2)} Securely
+                    </button>
+                </div>
+                
+                <div class="text-center mt-3">
+                    <small class="text-muted">
+                        <i class="fas fa-shield-alt me-1"></i>
+                        Your payment information is secure and encrypted
+                    </small>
+                </div>
+            </div>
+        `;
+        
+        // Add input formatting
+        formatCardInputs();
+    }
+
+    // Format card inputs
+    function formatCardInputs() {
+        const cardNumber = document.getElementById('cardNumber');
+        const expiryDate = document.getElementById('expiryDate');
+        
+        if (cardNumber) {
+            cardNumber.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\s/g, '');
+                let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+                e.target.value = formattedValue;
+            });
+        }
+        
+        if (expiryDate) {
+            expiryDate.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length >= 2) {
+                    value = value.substring(0,2) + '/' + value.substring(2,4);
+                }
+                e.target.value = value;
+            });
+        }
+    }
+
+    // Process payment
+    function processPayment(paymentIntentId) {
+        const submitButton = document.getElementById('submit-payment');
+        const originalText = submitButton.innerHTML;
+        
+        // Show loading
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+        submitButton.disabled = true;
+        
+        // Simulate payment processing
+        setTimeout(() => {
+            fetch('/payment-success', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    paymentIntentId: paymentIntentId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Close modal and redirect to success page
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('checkoutModal'));
+                    modal.hide();
+                    
+                    // Show success message
+                    alert('Payment successful! Redirecting to confirmation page...');
+                    window.location.href = '/user/cart/success';
+                } else {
+                    throw new Error(data.message || 'Payment failed');
+                }
+            })
+            .catch(error => {
+                console.error('Payment error:', error);
+                alert('Payment failed. Please try again.');
+                submitButton.innerHTML = originalText;
+                submitButton.disabled = false;
+            });
+        }, 2000); // Simulate processing time
+    }
+</script>
+
+<style>
+    .cart-item {
+        transition: all 0.3s ease;
+    }
+    
+    .cart-item:hover {
+        background-color: rgba(0, 0, 0, 0.02);
+        border-radius: 10px;
+    }
+    
+    .quantity-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+    }
+    
+    .quantity-display {
+        min-width: 30px;
+        text-align: center;
+    }
+    
+    .product-image img {
+        transition: transform 0.3s ease;
+    }
+    
+    .product-image:hover img {
+        transform: scale(1.05);
+    }
+    
+    .summary-row {
+        font-size: 0.95rem;
+    }
+    
+    .empty-cart-icon {
+        animation: bounce 2s infinite;
+    }
+    
+    @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0);
+        }
+        40% {
+            transform: translateY(-10px);
+        }
+        60% {
+            transform: translateY(-5px);
+        }
+    }
+</style>

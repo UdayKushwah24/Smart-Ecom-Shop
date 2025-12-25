@@ -1,0 +1,129 @@
+<% layout('layouts/boilerplate.ejs') %>
+
+    <%- include('../partials/navbar') %>
+        <%- include('../partials/flash') %>
+
+
+            <div class="row">
+
+                <div class="col-md-6 mt-5">
+
+                    <div class="card mx-auto shadow" style="width: 100%; max-width: 500px;">
+                        <div style="position: relative; overflow: hidden; border-radius: 20px 20px 0 0;">
+                            <img src="<%= foundProduct.img  %>" class="card-img-top" alt="<%= foundProduct.name %>" style="height: 400px; object-fit: cover;">
+                        </div>
+                        <div class="card-body">
+                            <h2 class="card-title">
+                                <%= foundProduct.name %>
+                            </h2>
+                            <h5 class="card-title" style="color: var(--accent-color); font-size: 2rem; font-weight: 800;">
+                                $<%= foundProduct.price %>
+                            </h5>
+
+                            <p class="card-text">
+                                <%= foundProduct.desc %>
+                            </p>
+                            
+                            <div class="d-flex gap-2 flex-wrap mb-3">
+                                <form class="flex-fill" action="/user/<%= foundProduct._id %>/add" method="post">
+                                    <button class="btn btn-success w-100">
+                                        <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+                                    </button>
+                                </form>
+                                <a href="#" class="btn btn-primary flex-fill">
+                                    <i class="fas fa-credit-card me-2"></i>Buy Now
+                                </a>
+                            </div>
+                            
+                            <% if(currentUser && currentUser.role==='seller' ) { %>
+                                <a href="/products/<%= foundProduct._id %>/edit" class="btn btn-sm btn-primary">Edit</a>
+                                <% } %>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="col-md-3 mt-4">
+                    <h1 class="display-6 fw-normal">Leaves a Reviews</h1>
+                    <% if (currentUser) { %>
+                    <form action="/products/<%= foundProduct._id %>/review" method="post">
+                        <!-- <label class="form-label fs-5  fw-semibold" for="rate">Rating :</label>
+                <input class="form-control mb-2" type="range" min="0" max="5" name="rating" id="rate">
+                     -->
+
+
+                        <fieldset class="starability-basic mt-4">
+                            <!-- <legend>First rating:</legend> -->
+                            <input type="radio" id="no-rate" class="input-no-rate" name="rating" value="0" checked
+                                aria-label="No rating." />
+                            <input type="radio" id="first-rate1" name="rating" value="1" />
+                            <label for="first-rate1" title="Terrible">1 star</label>
+                            <input type="radio" id="first-rate2" name="rating" value="2" />
+                            <label for="first-rate2" title="Not good">2 stars</label>
+                            <input type="radio" id="first-rate3" name="rating" value="3" />
+                            <label for="first-rate3" title="Average">3 stars</label>
+                            <input type="radio" id="first-rate4" name="rating" value="4" />
+                            <label for="first-rate4" title="Very good">4 stars</label>
+                            <input type="radio" id="first-rate5" name="rating" value="5" />
+                            <label for="first-rate5" title="Amazing">5 stars</label>
+                        </fieldset>
+                        <label class="form-label fs-5 fw-semibold" for="comm">Comment : </label>
+                        <textarea class="form-control mb-3" name="comment" id="comm" rows="3"
+                            placeholder="Enter the comment"></textarea>
+
+                        <button class="btn btn-sm shadow btn-warning">Add Review</button>
+                    </form>
+                    <% } else { %>
+                      <p>Please <a href="/login">login</a> to leave a review.</p>
+                    <% } %>
+
+                    <div class="pe-5 my-3">
+                        <% for(let review of foundProduct.reviews) { %>
+                            <div class="card mb-3">
+                                <div class="card-header">
+
+                                    <p class="starability-result" data-rating="<%= review.rating %>">
+                                        <!-- <p class="starability-result" data-rating="3"> -->
+
+                                    </p>
+                                </div>
+                                <div class="card-body py-0">
+                                    <!-- <p class="mb-1 me-6">
+                                <% if(review.createdAt ){ %>
+                                    <%= review.createdAt.toDateString() %>
+                                <% } %>
+                            </p>  -->
+
+
+                                    <p class="card-text">
+                                    <h6 class="d-inline-block">Comment :</h6>
+                                    <%= review.comment %>
+                                        </p>
+                                        <!-- ======================= -->
+                                        <div class="position-relative">
+                                            <!-- Date -->
+                                            <p class="position-absolute top-0 end-0 small text-muted">
+                                                <% if(review.createdAt ){ %>
+                                                    <%= review.createdAt.toDateString() %>
+                                                        <% } %>
+                                            </p>
+                                        </div>
+                                        <!-- ======================= -->
+                                        <% if (currentUser && review.author && ((typeof review.author.equals === 'function' && review.author.equals(currentUser._id)) || String(review.author) === String(currentUser._id))) { %>
+                                          <form action="/products/<%= foundProduct._id %>/review/<%= review._id %>?_method=DELETE" method="post" class="d-inline">
+                                            <button class="btn btn-sm btn-danger mb-2">Delete</button>
+                                          </form>
+                                        <% } %>
+                                </div>
+                            </div>
+                            <% } %>
+                    </div>
+
+                </div>
+
+
+
+
+            </div>
+            </body>
+
+            </html>

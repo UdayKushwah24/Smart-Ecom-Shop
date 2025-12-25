@@ -1,0 +1,21 @@
+<!-- <body style="background: linear-gradient(135deg, #ff4e50, #f9d423); min-height:100vh;"> -->
+<body class="bg-dark text-white">
+    <% layout('layouts/boilerplate') %>
+        <%- include('./partials/navbar') %>
+            <div class="row">
+
+                <div class="alert alert-danger text-center mt-5 col-lg-8 mx-auto" role="alert">
+                    <h1 class="display-6 fw-bold mb-0">⚠ Error</h1>
+                    <%= err %>
+                </div>
+            </div>
+
+            <!-- 
+<div class="alert alert-danger" role="alert">
+        <%= err %>
+    </div> -->
+
+
+</body>
+
+</html>
